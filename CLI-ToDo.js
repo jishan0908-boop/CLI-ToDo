@@ -23,46 +23,52 @@ async function choice() {
 }
 
 
-async function req_date(){
-   const date_0 =  await input ({message:"Enter the date !! "});
-   let date_1 = new Date(date_0);
-   let formatting = new Intl.DateTimeFormat('en-IN').format(date_1);
-   return formatting;
+async function req_date() {
+  const userInput = await input({
+    message: "✔ Enter the date !! (Format: YYYY-MM-DD)",
+    validate: (val) => /^\d{4}-\d{2}-\d{2}$/.test(val) ? true : "❌ Use format YYYY-MM-DD",
+  });
+
+  // No need to format using new Date(). Just return it directly.
+  return userInput.trim();
 }
 
 
 async function choice_1() {
   try {
-    var filename = "pack.json";
+    var filename_1 = "pack.json";
     let ask = await input({message:"Please Enter your file name is you are uusing default file name then only enter default : "})
     if(ask.toLocaleLowerCase() !== "default"){
-       filename = ask;
+       filename_1 = ask;
     }
     const dateToFind = await req_date();
-
+    console.log(dateToFind)
     // Read and parse file
-    const fileData = fs.readFileSync(filename, 'utf8');
-    const tasks = JSON.parse(fileData);
+    const fileData = fs.readFileSync(filename_1, 'utf8');
+const allData = JSON.parse(fileData);
 
-    // Filter by date and task status (Done == false)
-    const leftTasks = tasks.filter(t =>
-      t.Date === dateToFind && t.Task.ToDo.Done === "false"
-    );
+if (!allData[dateToFind]) {
+  console.log(`🎉 No tasks found for date: ${dateToFind}`);
+  return;
+}
 
-    if (leftTasks.length === 0) {
-      console.log(`🎉 No left/incomplete task found for date: ${dateToFind}`);
-      return;
-    }
+const dayTasks = allData[dateToFind].tasks || [];
+const leftTasks = dayTasks.filter(t => t.status === "false");
 
-    console.log(`📝 Incomplete Tasks for ${dateToFind}:\n`);
+if (leftTasks.length === 0) {
+  console.log(`🎉 No left/incomplete task found for date: ${dateToFind}`);
+  return;
+}
 
-    for (const taskEntry of leftTasks) {
-      const task = taskEntry.Task;
-      console.log(`🔹 Task ID   : ${task.Task_Id}`);
-      console.log(`   Task      : ${task.ToDo.Task_is}`);
-      console.log(`   Completed : ❌`);
-      console.log('-----------------------------------');
-    }
+console.log(`📝 Incomplete Tasks for ${dateToFind}:\n`);
+for (const task of leftTasks) {
+  console.log(`🔹 Task ID   : ${task.id}`);
+  console.log(`   Task      : ${task.task}`);
+  console.log(`   Completed : ❌`);
+  console.log('-----------------------------------');
+}
+
+
   } catch (err) {
     console.error("❌ Error reading tasks:", err.message);
   }
